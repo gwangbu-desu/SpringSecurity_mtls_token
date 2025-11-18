@@ -54,6 +54,8 @@ public class JwtService {
                 .compact();
     }
 
+    // Oauth2ResourceServer 사용으로 필요없어짐.
+    @Deprecated
     public Authentication getAuthentication(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(secretKey)

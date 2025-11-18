@@ -13,7 +13,7 @@ import java.util.Map;
 public class AuthController {
     private final JwtService jwtService;
 
-    @PostMapping("/auth/token")
+    @PostMapping("/mtls/auth/token")
     public Map<String, String> issueToken(Authentication auth) {
 
 //        String vehicleId = auth.getName(); // CN 값 (VEHICLE-1234)

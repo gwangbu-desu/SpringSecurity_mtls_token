@@ -8,8 +8,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+
+// [TODO]이 시점에 DB에서 권한을 찾고, 부여
+// [TODO]하나의 디바이스에도 여러 인증서가 존재하므로 vehicleId로 조회하는 것은 위험.
+
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class VehicleDetailsService implements UserDetailsService {
     @Override
