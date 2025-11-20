@@ -2,7 +2,11 @@ package com.example.demo.service;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x500.style.IETFUtils;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -12,7 +16,9 @@ import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.springframework.stereotype.Service;
 
@@ -103,10 +109,42 @@ public class CertificateService {
 
     private boolean verifyCsr(PKCS10CertificationRequest csr, String expectedDeviceCn) throws Exception {
         // Subject는 발급할 cert의 주체. 서버에서 VEHICLE-1234 에게 인증서를 발급한다. 이때, VEHICLE-1234가 주체임
-        X500Name subject = csr.getSubject();
-        String cn = subject.getRDNs(new org.bouncycastle.asn1.ASN1ObjectIdentifier("2.5.4.3"))[0].getFirst().getValue().toString();
+        // DN(Distinguish Name) == Subject
+        // CN / OU / O / C는 DN을 구성하는 표준 속성값
+        // CN (Common Name) : 개체 고유의 이름 용도별로 값이 다름.
+        // 서버 인증서 -> 도메인 이름
+        // 클라이언트 인증서 -> 사용자 이름
+        // IoT 인증서 -> 디바이스 ID
+        // CA인증서 -> CA 이름
+        // OU (Organizational Unit) : 조직내의 부서를 의미
+        // O (Organization) : 회사(조직)을 의미
+        // C (Country) : 국가 코드
 
-        return cn.equals(expectedDeviceCn);
+        // 1. 서명 검증 (키-신원 바인딩 확인)
+        ContentVerifierProvider verifierProvider = new JcaContentVerifierProviderBuilder()
+                .setProvider("BC")
+                .build(csr.getSubjectPublicKeyInfo());
+
+        boolean signatureValid = csr.isSignatureValid(verifierProvider);
+        if (!signatureValid) {
+            log.warn("CSR signature is invalid.");
+            return false;
+        }
+
+        // 2. CN 검증
+        X500Name subject = csr.getSubject();
+        RDN[] cnRdns = subject.getRDNs(BCStyle.CN);
+        if (cnRdns == null || cnRdns.length == 0) {
+            log.warn("CSR has no CN in subject.");
+            return false;
+        }
+        String cn = IETFUtils.valueToString(cnRdns[0].getFirst().getValue());
+        if (!cn.equals(expectedDeviceCn)) {
+            log.warn("CSR CN mismatch. expected={}, actual={}", expectedDeviceCn, cn);
+            return false;
+        }
+
+        return true;
     }
 
     private X509Certificate createSignedCertificate(PKCS10CertificationRequest csr) throws Exception {
