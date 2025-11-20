@@ -43,7 +43,7 @@ public class DefaultSecurityConfig {
     @Bean
     public SecurityFilterChain mtlsOnlyChain(HttpSecurity http) throws Exception {
         commonCustomizer.customize(http);
-        http.securityMatcher("/mtls/auth/token/**");
+        http.securityMatcher("/auth/token/**");
 
         // 인증: mTLS만 적용
         mtlsCustomizer.customize(http);
@@ -68,7 +68,7 @@ public class DefaultSecurityConfig {
         return http.build();
     }
     // ========================================================
-    // 4) 기본 Public Chain (기타 모든 요청)
+    // 4) 기본 Public Chain (서명용 요청)
     // ========================================================
     @Bean
     public SecurityFilterChain publicChain(HttpSecurity http) throws Exception {
