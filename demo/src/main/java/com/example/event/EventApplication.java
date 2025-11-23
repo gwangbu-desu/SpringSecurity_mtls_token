@@ -11,9 +11,9 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 @SpringBootApplication(exclude = {
         SecurityAutoConfiguration.class,
         ManagementWebSecurityAutoConfiguration.class,
-        JdbcClientAutoConfiguration.class,
-        DataSourceAutoConfiguration.class,
-        JdbcTemplateAutoConfiguration.class
+//        JdbcClientAutoConfiguration.class,
+//        DataSourceAutoConfiguration.class,
+//        JdbcTemplateAutoConfiguration.class
 })
 public class EventApplication {
     public static void main(String[] args) {

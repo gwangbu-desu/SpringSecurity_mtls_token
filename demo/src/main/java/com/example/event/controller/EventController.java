@@ -16,4 +16,10 @@ public class EventController {
         userService.register(email);
         return "OK";
     }
+
+    @PostMapping("/register2")
+    public String register2(@RequestParam String email) {
+        userService.register2(email);
+        return "OK";
+    }
 }

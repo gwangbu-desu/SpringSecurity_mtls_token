@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class EmailNotificationListener {
     @Async(value = "taskExecutor")
-    @EventListener
+    @EventListener(value = { UserRegisteredEvent.class })
     public void handleUserRegistered(UserRegisteredEvent event) {
         log.info("[EmailNotification] 이메일 전송: " + event.getEmail());
     }
